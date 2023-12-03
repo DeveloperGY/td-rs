@@ -92,7 +92,7 @@ impl Terminal {
             if y < self.height-1 {output += "\n"};
         }
 
-        print!("{}\x1b[0m", output.trim_end());
+        print!("{}\x1b[m", output);
 
         let _ = std::io::stdout().flush();
     }
