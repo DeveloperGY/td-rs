@@ -3,13 +3,14 @@ use std::io::Write;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color (pub u8, pub u8, pub u8);
 
+#[derive(Debug, Clone)]
 pub struct Terminal {
     width: usize,
     height: usize,
 
-    ch: Box<[Box<[char]>]>,
-    fg: Box<[Box<[Color]>]>,
-    bg: Box<[Box<[Color]>]>
+    ch: Box<[char]>,
+    fg: Box<[Color]>,
+    bg: Box<[Color]>
 }
 
 impl Terminal {
@@ -21,21 +22,15 @@ impl Terminal {
         let rows = win_size.ws_row as usize;
 
 
-        let mut ch_row = Vec::new();
-        ch_row.resize(columns, ' ');
-
         let mut ch_buf = Vec::new();
-        ch_buf.resize(rows, ch_row.clone().into_boxed_slice());
+        ch_buf.resize(columns*rows, ' ');
 
-
-        let mut color_row = Vec::new();
-        color_row.resize(columns, Color(0, 0, 0));
 
         let mut fg_buf = Vec::new();
-        fg_buf.resize(rows, color_row.clone().into_boxed_slice());
+        fg_buf.resize(columns*rows, Color(0, 0, 0));
 
         let mut bg_buf = Vec::new();
-        bg_buf.resize(rows, color_row.clone().into_boxed_slice());
+        bg_buf.resize(columns*rows, Color(0, 0, 0));
 
 
         Self {
@@ -49,32 +44,32 @@ impl Terminal {
 
     pub fn set_char(&mut self, x: usize, y: usize, ch: char) {
         if !self.is_valid_coords(x, y) {return};
-        self.ch[y][x] = ch;
+        self.ch[y*self.width+x] = ch;
     }
 
     pub fn set_color_char(&mut self, x: usize, y: usize, ch: char, fg: Color, bg: Color) {
         if !self.is_valid_coords(x, y) {return};
-        self.ch[y][x] = ch;
-        self.fg[y][x] = fg;
-        self.bg[y][x] = bg;
+        self.ch[y*self.width+x] = ch;
+        self.fg[y*self.width+x] = fg;
+        self.bg[y*self.width+x] = bg;
     }
 
     pub fn set_fg(&mut self, x: usize, y: usize, color: Color) {
         if !self.is_valid_coords(x, y) {return};
-        self.fg[y][x] = color;
+        self.fg[y*self.width+x] = color;
     }
 
     pub fn set_bg(&mut self, x: usize, y: usize, color: Color) {
         if !self.is_valid_coords(x, y) {return};
-        self.bg[y][x] = color;
+        self.bg[y*self.width+x] = color;
     }
 
     pub fn clear(&mut self) {
         for y in 0..self.height {
             for x in 0..self.width {
-                self.ch[y][x] = ' ';
-                self.fg[y][x] = Color(0, 0, 0);
-                self.bg[y][x] = Color(0, 0, 0);
+                self.ch[y*self.width+x] = ' ';
+                self.fg[y*self.width+x] = Color(0, 0, 0);
+                self.bg[y*self.width+x] = Color(0, 0, 0);
             }
         }
     }
@@ -84,10 +79,10 @@ impl Terminal {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let fg = self.fg[y][x];
-                let bg = self.bg[y][x];
+                let fg = self.fg[y*self.width+x];
+                let bg = self.bg[y*self.width+x];
 
-                output += format!("\x1b[38;2;{};{};{}m\x1b[48;2;{};{};{}m{}", fg.0, fg.1, fg.2, bg.0, bg.1, bg.2, self.ch[y][x]).as_str();
+                output += format!("\x1b[38;2;{};{};{}m\x1b[48;2;{};{};{}m{}", fg.0, fg.1, fg.2, bg.0, bg.1, bg.2, self.ch[y*self.width+x]).as_str();
             }
             if y < self.height-1 {output += "\n"};
         }
