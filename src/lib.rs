@@ -89,10 +89,10 @@ impl Terminal {
 
                 output += format!("\x1b[38;2;{};{};{}m\x1b[48;2;{};{};{}m{}", fg.0, fg.1, fg.2, bg.0, bg.1, bg.2, self.ch[y][x]).as_str();
             }
-            output += "\n"
+            if y < self.height-1 {output += "\n"};
         }
 
-        print!("{}\x1b[m", output.trim_end());
+        print!("{}\x1b[0m", output.trim_end());
 
         let _ = std::io::stdout().flush();
     }
