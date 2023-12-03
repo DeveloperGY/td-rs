@@ -64,12 +64,12 @@ impl Terminal {
         self.bg[y*self.width+x] = color;
     }
 
-    pub fn clear(&mut self) {
+    pub fn clear(&mut self, fg: Color, bg: Color) {
         for y in 0..self.height {
             for x in 0..self.width {
                 self.ch[y*self.width+x] = ' ';
-                self.fg[y*self.width+x] = Color(0, 0, 0);
-                self.bg[y*self.width+x] = Color(0, 0, 0);
+                self.fg[y*self.width+x] = fg;
+                self.bg[y*self.width+x] = bg;
             }
         }
     }
